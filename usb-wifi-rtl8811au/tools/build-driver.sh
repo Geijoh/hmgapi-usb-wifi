@@ -1,14 +1,20 @@
 #!/bin/sh
-# Rebuilds files/bcmdhd-rtl8811au.ko in Docker (Ubuntu 16.04, gcc 4.9) from public sources.
-#   usb-wifi-rtl8811au/tools/build-driver.sh <output.ko>
-# Kernel: a community 3.18.24 Telechips tree for the older TCC897x, not the car's exact source
-# (Mobis hasn't published that). kernel.config is the car's config resolved against this tree.
+# Rebuilds files/<car>/bcmdhd-rtl8811au.ko in Docker (Ubuntu 16.04, gcc 4.9) from public sources.
+#   usb-wifi-rtl8811au/tools/build-driver.sh <sg2ev|tm23> <output.ko>
+# Kernel: a community 3.18.24 Telechips tree, not the car's exact source (Mobis hasn't published
+# that). <car>/kernel.config is that car's kernel config resolved against this tree:
+#   sg2ev: the car's own config (TCC803X; LPAE and 64-bit DMA addresses), plus <car>/prep.sh;
+#   tm23:  the tree's wp_daudioplus_kia_us_defconfig (a plain 32-bit TCC897X kernel) plus
+#          CONFIG_BRIDGE_NETFILTER. A driver built with the SG2EV config has the wrong struct urb,
+#          scatterlist and resource layouts on a TM23 (tools/check-layout.py shows it).
 set -e
-OUT=${1:?usage: build-driver.sh <output.ko>}
+CAR=${1:?usage: build-driver.sh <sg2ev|tm23> <output.ko>}
+OUT=${2:?usage: build-driver.sh <sg2ev|tm23> <output.ko>}
 cd "$(dirname "$0")"
+[ -f "$CAR/kernel.config" ] || { echo "no such car: $CAR" >&2; exit 1; }
 KERNEL=3402d473aed6a2b82c5d08e0ceafc4a54701a4a0   # C457/android_kernel_telechips_tcc897x
 DRIVER=1a819991f5b75e64dfcf922b96a6681f367cbba0   # morrownr/8821au-20210708
-docker run --rm -i --platform linux/arm64 -e KERNEL=$KERNEL -e DRIVER=$DRIVER \
+docker run --rm -i --platform linux/arm64 -e KERNEL=$KERNEL -e DRIVER=$DRIVER -e CAR="$CAR" \
     -v "$PWD":/in:ro ubuntu:16.04 sh -es > "$OUT" <<'SCRIPT'
 exec 3>&1 1>&2
 apt-get update -qq
@@ -20,11 +26,8 @@ mkdir -p /w/k /w/8821au-20210708
 curl -sSL https://codeload.github.com/C457/android_kernel_telechips_tcc897x/tar.gz/$KERNEL | tar xz --strip-components=1 -C /w/k
 curl -sSL https://codeload.github.com/morrownr/8821au-20210708/tar.gz/$DRIVER | tar xz --strip-components=1 -C /w/8821au-20210708
 cd /w/k
-# options the car's TCC803X build selects, which this tree's Kconfig would drop
-printf '\nconfig CAR_ABI\n\tdef_bool y\n\tselect ARCH_DMA_ADDR_T_64BIT\n\tselect ZONE_DMA\n\tselect MIGHT_HAVE_PCI\n' >> arch/arm/Kconfig
-# the car's kernel has the vmacache_seqnum u64 backport
-sed -i 's/^\(\s*\)u32 vmacache_seqnum;/\1u64 vmacache_seqnum;/' include/linux/mm_types.h include/linux/sched.h
-cp /in/kernel.config .config
+if [ -f /in/$CAR/prep.sh ]; then . /in/$CAR/prep.sh; fi
+cp /in/$CAR/kernel.config .config
 make olddefconfig >/dev/null 2>&1
 make -j6 modules_prepare >/dev/null 2>&1
 cd /w/8821au-20210708

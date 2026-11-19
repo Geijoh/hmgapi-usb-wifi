@@ -1,11 +1,15 @@
 {
+  "cars": {
+    "SG2EV.USA.": "sg2ev",
+    "TM23.USA.0000.V016.010.260903": "tm23"
+  },
+  "stock": "patches/{set}/stock",
   "changes": [
     {
       "type": "add",
       "path": "/system/wifi/bcmdhd.ko",
-      "src": "files/bcmdhd-rtl8811au.ko",
-      "mode": "644",
-      "stock": "144b5cf07482a7ea44ee82e3b82d0774"
+      "src": "files/{set}/bcmdhd-rtl8811au.ko",
+      "mode": "644"
     }
   ]
 }
