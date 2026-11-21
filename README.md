@@ -9,7 +9,8 @@ The mod is in [`usb-wifi-rtl8811au/`](usb-wifi-rtl8811au/README.md): which cars,
 on them, the driver and how to rebuild it, and what keeps it off units that have Wi-Fi (a gate on the Santa Fe; on the Niro, the owner checks).
 
 Status: pre-release. Cars: Kia Niro EV (`SG2EV`, USA 260507) and Hyundai Santa Fe (`TM23`, USA
-260903). Wireless CarPlay does not yet complete on the Santa Fe.
+260903). Wireless CarPlay works on the Santa Fe, with a hook that skips DiPO's `resetUSB()` (see
+the mod's README).
 
 By dibble9012 (Kyle Dibble-Dabney), from HMG-API PR #104; Santa Fe support by Geijoh. AGPL-3.0.
 
