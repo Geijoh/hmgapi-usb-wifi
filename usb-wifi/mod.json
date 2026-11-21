@@ -1,6 +1,6 @@
 {
-  "id": "usb-wifi-rtl8811au",
-  "name": "USB Wi-Fi for wireless CarPlay (RTL8811AU)",
+  "id": "usb-wifi",
+  "name": "USB Wi-Fi Adapter for Wireless CarPlay",
   "version": "1.0.0-rc.1",
   "hmgapi": ">=1.1.0-rc.3",
   "authors": ["dibble9012", "Geijoh"],

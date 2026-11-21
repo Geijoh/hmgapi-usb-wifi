@@ -1,6 +1,6 @@
 #!/bin/sh
 # Rebuilds files/<car>/bcmdhd-rtl8811au.ko in Docker (Ubuntu 16.04, gcc 4.9) from public sources.
-#   usb-wifi-rtl8811au/tools/build-driver.sh <sg2ev|tm23> <output.ko>
+#   usb-wifi/tools/build-driver.sh <sg2ev|tm23> <output.ko>
 # Kernel: a community 3.18.24 Telechips tree, not the car's exact source (Mobis hasn't published
 # that). <car>/kernel.config is that car's kernel config resolved against this tree:
 #   sg2ev: the car's own config (TCC803X; LPAE and 64-bit DMA addresses), plus <car>/prep.sh;

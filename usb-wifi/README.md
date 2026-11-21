@@ -1,4 +1,4 @@
-# USB Wi-Fi for wireless CarPlay (RTL8811AU)
+# USB Wi-Fi Adapter for Wireless CarPlay
 
 For a head unit where `wireless-carplay-aa` gets as far as the hotspot, but the built-in Wi-Fi
 never comes up: `failed to power up DHD generic adapter`, nothing on `mmc1`, no `wlan0`, or no
