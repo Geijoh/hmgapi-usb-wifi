@@ -45,4 +45,22 @@ P
 # Niro report hmgapi.wifi, chip or not, so a gate would refuse them all (README).
 car sg2ev SG2EV.USA.0000.V015.012.260507 sg2ev_us tcc803x open
 car tm23 TM23.USA.0000.V016.010.260903 tm23_us tcc897x gated
+
+guard() {  # guard <block 0|1>: run the usbguard service against a fake sysfs and bus directory
+  echo "== usbguard, block=$1"
+  G=$T/guard$1; rm -rf $G; mkdir -p $G/devs $G/bus; echo 1 > $G/param; chmod 755 $G/bus
+  USBGUARD_PARAM=$G/param USBGUARD_DEVS=$G/devs USBGUARD_BUSDIR=$G/bus USBGUARD_BLOCK=$1 \
+    sh usb-wifi/svc/usbguard.sh > $G/log 2>&1 & GP=$!
+  mkdir -p $G/devs/1-1; echo 2357 > $G/devs/1-1/idVendor; echo 011e > $G/devs/1-1/idProduct
+  sleep 1
+  check "adapter in: port power control off" 0 "$(cat $G/param)"
+  if [ "$1" = 1 ]; then want=700; else want=755; fi
+  check "adapter in: bus directory mode" $want "$(ls -ld $G/bus | awk '{print (substr($1,1,10)=="drwx------") ? 700 : 755}')"
+  rm -r $G/devs/1-1; sleep 1
+  check "adapter out: port power control on" 1 "$(cat $G/param)"
+  check "adapter out: bus directory 755" 755 "$(ls -ld $G/bus | awk '{print (substr($1,1,10)=="drwx------") ? 700 : 755}')"
+  kill $GP; wait $GP 2>/dev/null || true
+}
+guard 1   # Santa Fe: locks the bus directory while the adapter is in
+guard 0   # anything else: leaves it alone
 exit $fail
