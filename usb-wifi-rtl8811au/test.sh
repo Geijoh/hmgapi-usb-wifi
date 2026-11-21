@@ -24,10 +24,12 @@ P
   ORIG=$(sum $R/system/wifi/bcmdhd.ko)
   eng apply; has "unknown stock driver refused" "$ORIG" "$out"
   check "... and left alone" "$ORIG" "$(sum $R/system/wifi/bcmdhd.ko)"
-  # a unit whose chip HMG-API has seen on SDIO is not for this mod, whatever its driver file is
-  mkdir -p $R/sys/bus/sdio/devices/mmc1:0001:1
-  eng plan; has "refused on a unit with a Wi-Fi chip" "not for units with hmgapi.wifi" "$out"
-  rmdir $R/sys/bus/sdio/devices/mmc1:0001:1
+  if [ "$5" = gated ]; then
+    # a unit whose chip HMG-API has seen on SDIO is not for this mod, whatever its driver file is
+    mkdir -p $R/sys/bus/sdio/devices/mmc1:0001:1
+    eng plan; has "refused on a unit with a Wi-Fi chip" "not for units with hmgapi.wifi" "$out"
+    rmdir $R/sys/bus/sdio/devices/mmc1:0001:1
+  fi
   python3 - "$R/data/hmgapi/settings/hmgapi.json" "$ORIG" <<'P'
 import json,sys
 json.dump({"overrides":{"accept_baseline":[{"path":"/system/wifi/bcmdhd.ko","md5":sys.argv[2]}]}},open(sys.argv[1],"w"))
@@ -39,6 +41,8 @@ P
   check "stock bytes back" "$ORIG" "$(sum $R/system/wifi/bcmdhd.ko)"
 }
 
-car sg2ev SG2EV.USA.0000.V015.012.260507 sg2ev_us tcc803x
-car tm23 TM23.USA.0000.V016.010.260903 tm23_us tcc897x
+# "gated": mod.json refuses a unit with a Wi-Fi chip. Not the Niro: its stock hotspot feature makes every
+# Niro report hmgapi.wifi, chip or not, so a gate would refuse them all (README).
+car sg2ev SG2EV.USA.0000.V015.012.260507 sg2ev_us tcc803x open
+car tm23 TM23.USA.0000.V016.010.260903 tm23_us tcc897x gated
 exit $fail

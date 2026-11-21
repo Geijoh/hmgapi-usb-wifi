@@ -5,9 +5,9 @@
   "hmgapi": ">=1.1.0-rc.3",
   "authors": ["dibble9012", "Geijoh"],
   "license": "AGPL-3.0",
-  "description": "Runs the hotspot for wireless CarPlay on a TP-Link Archer T2U Nano or Nano AC600 (USB ID 2357:011e) in the USB port, for a head unit with no working built-in Wi-Fi. Replaces the Broadcom Wi-Fi driver with a Realtek one built for the unit's kernel; removing the mod restores it. Only for the cars listed, and not for a unit whose Wi-Fi chip HMG-API has seen. Turn ADB over USB off before plugging in the adapter, and pull the adapter before turning it back on.",
+  "description": "Runs the hotspot for wireless CarPlay on a TP-Link Archer T2U Nano or Nano AC600 (USB ID 2357:011e) in the USB port, for a head unit with no working built-in Wi-Fi. Replaces the Broadcom Wi-Fi driver with a Realtek one built for the unit's kernel; removing the mod restores it. Only for the cars listed. On the Santa Fe it is refused once HMG-API has seen the unit's Wi-Fi chip; on the Niro HMG-API can't tell a working chip from a dead one, so check the Car Report first (see the README). Turn ADB over USB off before plugging in the adapter, and pull the adapter before turning it back on.",
   "system": [
-    { "model": ["SG2EV"], "region": "USA", "firmware": "260507", "features": ["!hmgapi.wifi"] },
+    { "model": ["SG2EV"], "region": "USA", "firmware": "260507" },
     { "model": ["TM23"], "region": "USA", "firmware": "260903", "features": ["!hmgapi.wifi"] }
   ],
   "requires": ["wireless-carplay-aa >=2.1.0"],

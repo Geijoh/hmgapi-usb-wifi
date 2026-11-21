@@ -39,9 +39,11 @@ unit's product and refuses any other.
 
 ## Using it
 
-1. Install `wireless-carplay-aa`, apply, restart, and look at the Car Report. If `wifi_chip` is
-   true the unit has Wi-Fi, and this mod refuses to install (see "Gates"). If not, install this
-   mod, apply, and restart.
+1. Install `wireless-carplay-aa`, apply, restart, switch on the unit's own hotspot once, and look
+   at the Car Report's `wifi` line. `seen` means a Wi-Fi chip answered: the unit has working
+   Wi-Fi and doesn't need this mod (on a Santa Fe it refuses to install; on a Niro it can't tell,
+   see "Gates"). `stock hotspot`, `unpowered` or `none` means no chip answered: install this mod,
+   apply, and restart.
 2. Turn ADB over USB off. The port only powers the adapter in host mode.
 3. Plug in the adapter and connect the iPhone over Bluetooth. Don't plug in anything else: the
    port is shared, so wired CarPlay and USB drives need the adapter out.
@@ -69,15 +71,20 @@ The mod replaces the Broadcom driver, so:
   car for each car, on the patch engine.
 - **Model, region and firmware.** `mod.json` lists exactly the two cars above. A unit with another
   model, region or firmware isn't offered the mod.
-- **A unit that has Wi-Fi.** Both entries carry `"features": ["!hmgapi.wifi"]`: HMG-API refuses
-  the mod ("not for units with hmgapi.wifi") once it has seen the unit's Wi-Fi chip on SDIO.
-  `test.sh` checks the refusal with a fake SDIO device. Limit: a chip that has never been
-  powered isn't on SDIO, and HMG-API can't tell it from no chip. The wireless mod asks HMG-API
-  for the hotspot feature, which HMG-API's docs say is what makes the unit power a fitted chip,
-  so with that mod applied and the unit restarted a fitted chip should show on SDIO and the
-  gate then refuses this mod. That has not been tried on a unit that has a chip. Install the
-  wireless mod first and check the Car Report (`wifi_chip`) before this one. The `SG2EV` entry's
-  gate is based on the owner's logs (nothing on `mmc1`), not on a Niro Car Report.
+- **A unit that has Wi-Fi: Santa Fe.** Its entry carries `"features": ["!hmgapi.wifi"]`, so
+  HMG-API refuses the mod ("not for units with hmgapi.wifi") once it has seen the unit's Wi-Fi
+  chip on SDIO. The Santa Fe has no stock hotspot feature (HMG-API writes its own file), which
+  is why `hmgapi.wifi` only appears when a chip really answers there; the unit this was built on
+  shows that in `hmgapi engine status`. `test.sh` checks the refusal with a fake SDIO device. It
+  has not been tried on a Santa Fe that has a chip. Limit: a chip that has never been powered
+  isn't on SDIO, hence step 1 above.
+- **A unit that has Wi-Fi: Niro EV.** No such gate, because it can't work. The Niro has the
+  hotspot feature in its own software, and HMG-API counts that plus the Broadcom driver files as
+  `hmgapi.wifi` (the report's `wifi: stock hotspot`) even when no chip answers. Of the seven
+  Niro EV US 260507 Car Reports on HMG-API #12, one says `wifi_chip: false` and six say `true`,
+  and the one from HMG-API 1.1.0-rc.4 says `stock hotspot`, which is not a chip seen. A
+  `!hmgapi.wifi` gate would refuse all of them, including the car this mod was made on. So on a
+  Niro the owner has to check (step 1): this mod does not stop itself.
 
 ## The driver
 
