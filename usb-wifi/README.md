@@ -14,28 +14,39 @@ support, the per-car driver builds and the gates below were added by Geijoh.
 | Car | Firmware | Driver | Tested |
 |---|---|---|---|
 | Kia Niro EV (`SG2EV`), USA | 260507 | `files/sg2ev` | On the car by dibble9012 (HMG-API #104): hotspot and CarPlay sessions of up to 7.5 minutes, with an iPhone. Nobody else has run it. |
-| Hyundai Santa Fe (`TM23`), USA | `TM23.USA.0000.V016.010.260903` | `files/tm23` | On the car by one owner: wireless CarPlay works, but only with a hook that skips DiPO's `resetUSB()` (see below). |
+| Hyundai Santa Fe (`TM23`), USA | `TM23.USA.0000.V016.010.260903` | `files/tm23` | On the car by one owner, **partly**: the hotspot comes up and the iPhone joins it, but no wireless CarPlay session has completed yet (see below). |
 
 A driver built for one car is not safe on the other (different kernel config, different struct
 layouts), so each car has its own file and its own stock checksum. The mod picks the one for the
 unit's product and refuses any other.
 
-**TM23, what was tried on the car** (no Wi-Fi chip fitted; adapter plugged in; the failed runs on
-wireless mod 2.2.0-rc.5, the working one on 2.2.0-rc.9):
+**TM23, what was tried on the car** (no Wi-Fi chip fitted; adapter plugged in; wireless mod
+2.2.0-rc.5, HMG-API 1.1.0-rc.4; runs on 2026-11-18 and 2026-11-20):
 
 - The driver loads and the adapter is recognised. The hotspot comes up on 5 GHz channel 149; a
   phone and a watch join it.
 - Bluetooth pairing, iAP2 and the "join this network" message to the iPhone work, and the iPhone
-  joins the CarPlay hotspot.
-- **Wireless CarPlay works**, with `resetUSB()` skipped. The owner checked audio and media, calls,
-  a session of more than 10 minutes, and a cold start with the phone reconnecting.
-- Without the skip, the session does not finish. About 6 seconds after `startCarPlaySession`
-  (three runs: 6.9, 6.0 and 6.0 s), the stock CarPlay app calls `resetUSB()`, which sends the
-  micom the `SYS_VBUS_OFF_ON_C` command and power-cycles the USB port, which drops the adapter and
-  the hotspot. `usbguard` can't stop that on a TM23: it sets the kernel's `vbus_control_enable`,
-  and this reset goes through the micom instead. Skipping the call takes a hook point for
-  `resetUSB()` in HMG-API ([issue #372](https://github.com/Open-HMG/HMG-API/issues/372)).
-- Audio delay and Android Auto: not tested.
+  joined the CarPlay hotspot once.
+- **No wireless CarPlay session has completed.** Three separate things stop it:
+  1. **The car's USB probe wedges the adapter.** About 1.5 s after the adapter attaches, the car's
+     wired Android Auto stack sends it Android Open Accessory vendor requests (52 and 53, through
+     usbfs). The adapter's control endpoint then stops answering (`timed out on ep0out`), and the
+     driver can't start or reload (`HalPwrSeqCmdParsing: Fail to polling Offset[0x6]`). `usbguard`
+     now sets `/dev/bus/usb/001` to 700 while the adapter is in, which stops the probe: on the car,
+     one run with it blocked showed no probe and no timeouts.
+  2. **The hotspot doesn't always start.** On 2026-11-18 it came up when the mod started it with
+     the hotspot off. On 2026-11-20 the same request, with the adapter plugged in after boot,
+     started no hostapd for 13 s. The cause isn't pinned down: in the second case the driver had
+     been loaded at boot with no adapter in.
+  3. **`resetUSB()`.** About 6 seconds after `startCarPlaySession` (runs: 6.9, 6.0, 6.0 and 6.1 s),
+     the stock CarPlay app calls `resetUSB()`, which sends the micom the `SYS_VBUS_OFF_ON_C`
+     command and power-cycles the USB port, which drops the adapter and the hotspot. `usbguard`
+     can't stop that on a TM23: it sets the kernel's `vbus_control_enable`, and this reset goes
+     through the micom instead. In the best run the iPhone got its address 5.4 s after the session
+     started, and the reset still fired 0.4 s later. Skipping the call takes a hook point for
+     `resetUSB()` in HMG-API ([issue #372](https://github.com/Open-HMG/HMG-API/issues/372)),
+     which does not exist yet.
+- Audio, audio delay, Android Auto, long sessions: not reached, so not tested.
 - The hotspot name sent to the iPhone is the CarPlay entry in `/data/misc/wifi/softap.conf`, but the
   wireless mod started the hotspot with the other entry's name. Until that is fixed in
   `wireless-carplay-aa`, set both entries to the same name and password.
@@ -62,6 +73,9 @@ Removing the mod puts the stock `bcmdhd.ko` back.
 - **`usbguard` service**: while the adapter is present, it sets the kernel's
   `vbus_control_enable` (`/sys/module/tcc_dwc_otg/parameters/`) to 0, so a `resetUSB()` that goes
   through that parameter can't cut power to the port. When the adapter is absent, it sets it to 1.
+  On the Santa Fe it also sets `/dev/bus/usb/001` to mode 700 while the adapter is present (755
+  otherwise), so the car's Android Auto probe can't open the adapter. While it is 700, USB drives
+  and wired CarPlay can't use the port either, which is why the adapter has to be out for them.
 
 ## Gates: stock driver, and units whose Wi-Fi works
 
@@ -153,6 +167,6 @@ file. The TM23 unit checked was already on WPA2.
   starts, calls and audio quality aren't tested. `usbguard` hadn't blocked a real reset yet: in the
   session after its timing fix CarPlay started before the stock app's timer ran out. If a reset
   gets through, the adapter comes back in about 2.5 seconds and the phone rejoins.
-- TM23: one car, one firmware, one adapter, one owner. CarPlay works only with `resetUSB()`
-  skipped (see "what was tried on the car"). Audio delay and Android Auto aren't tested.
+- TM23: one car, one firmware, one adapter, one owner. No wireless CarPlay session has completed
+  (see "what was tried on the car"). The `chmod` guard has had one run on the car.
 - The SG2EV mod uses the wireless mod's EV6 patch set, not one made for the Niro.
