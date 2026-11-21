@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """The HMG-API pin is in two places: hmgapi-sdk.json (the SDK) and the mod workflow's @ref in
 ci.yml. They must name the same HMG-API: {"ref": sha} with @sha, {"version": v} with @v<v>.
-Run by CI. (Add .github/workflows/release.yml to the tuple when the release workflow is added.)"""
+Run by CI and by the release workflow."""
 import json, re, sys
 pin = json.load(open('hmgapi-sdk.json'))
 want = pin['ref'] if 'ref' in pin else 'v' + pin['version']
 bad = 0
-for wf in ('.github/workflows/ci.yml',):
+for wf in ('.github/workflows/ci.yml', '.github/workflows/release.yml'):
     refs = re.findall(r'uses:\s*Open-HMG/HMG-API/\.github/workflows/mod\.yml@(\S+)', open(wf).read())
     if refs != [want]:
         print(f'{wf}: mod.yml at {refs}, but hmgapi-sdk.json pins {want}: change them together')
