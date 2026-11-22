@@ -9,8 +9,8 @@ The mod is in [`usb-wifi/`](usb-wifi/README.md): which cars, what was tested
 on them, the driver and how to rebuild it, and what keeps it off units that have Wi-Fi (a gate on the Santa Fe; on the Niro, the owner checks).
 
 Status: pre-release, no release published yet. Cars: Kia Niro EV (`SG2EV`, USA 260507) and
-Hyundai Santa Fe (`TM23`, USA 260903). Wireless CarPlay does not yet complete on the Santa Fe (see
-the mod's README).
+Hyundai Santa Fe (`TM23`, USA 260903). On the Santa Fe one wireless CarPlay session has run (2
+minutes, on test builds); it isn't reliable yet (see the mod's README).
 
 By dibble9012 (Kyle Dibble-Dabney), from HMG-API PR #104; Santa Fe support by Geijoh. AGPL-3.0.
 
