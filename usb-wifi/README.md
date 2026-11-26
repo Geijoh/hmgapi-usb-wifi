@@ -88,6 +88,13 @@ Removing the mod puts the stock `bcmdhd.ko` back.
   On the Santa Fe it also sets `/dev/bus/usb/001` to mode 700 while the adapter is present (755
   otherwise), so the car's Android Auto probe can't open the adapter. While it is 700, USB drives
   and wired CarPlay can't use the port either, which is why the adapter has to be out for them.
+  It looks every 0.2 s. That was too slow once: the probe came 0.27 s after the adapter got its
+  address (plugged in again just after a port power cycle), and the adapter stopped answering
+  until the next power cycle. So on the Santa Fe the service also waits for a new device on the
+  bus (inotify, through toolbox's `notify`) and sets 700 at once if it is the adapter. On the
+  unit that takes about 0.02 s from a new file to the changed mode (measured with a test
+  directory). With the adapter, the wait set 700 at each of the 16 plug-ins logged on the Santa
+  Fe (2026-11-23 and 11-25), before the 0.2 s loop did.
 
 ## Gates: stock driver, and units whose Wi-Fi works
 
